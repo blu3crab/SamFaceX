@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.mediapipe.examples.facedetection
+package com.ahandyapp.ahafacex
 
 import androidx.lifecycle.ViewModel
 

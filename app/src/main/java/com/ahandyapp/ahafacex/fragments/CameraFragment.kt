@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.mediapipe.examples.facedetection.fragments
+package com.ahandyapp.ahafacex.fragments
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
@@ -35,10 +35,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
-import com.google.mediapipe.examples.facedetection.FaceDetectorHelper
-import com.google.mediapipe.examples.facedetection.MainViewModel
-import com.google.mediapipe.examples.facedetection.R
-import com.google.mediapipe.examples.facedetection.databinding.FragmentCameraBinding
+import com.ahandyapp.ahafacex.FaceDetectorHelper
+import com.ahandyapp.ahafacex.MainViewModel
+import com.ahandyapp.ahafacex.R
+import com.ahandyapp.ahafacex.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors

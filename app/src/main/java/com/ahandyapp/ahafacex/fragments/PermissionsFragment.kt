@@ -1,4 +1,4 @@
-package com.google.mediapipe.examples.facedetection.fragments
+package com.ahandyapp.ahafacex.fragments
 
 import android.Manifest
 import android.content.Context
@@ -10,7 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
-import com.google.mediapipe.examples.facedetection.R
+import com.ahandyapp.ahafacex.R
 
 private val PERMISSIONS_REQUIRED = arrayOf(Manifest.permission.CAMERA)
 

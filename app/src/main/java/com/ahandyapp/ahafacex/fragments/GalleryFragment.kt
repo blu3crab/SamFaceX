@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.mediapipe.examples.facedetection.fragments
+package com.ahandyapp.ahafacex.fragments
 
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -31,9 +31,9 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import com.google.mediapipe.examples.facedetection.MainViewModel
-import com.google.mediapipe.examples.facedetection.FaceDetectorHelper
-import com.google.mediapipe.examples.facedetection.databinding.FragmentGalleryBinding
+import com.ahandyapp.ahafacex.MainViewModel
+import com.ahandyapp.ahafacex.FaceDetectorHelper
+import com.ahandyapp.ahafacex.databinding.FragmentGalleryBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService

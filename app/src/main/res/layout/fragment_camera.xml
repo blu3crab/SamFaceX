@@ -26,7 +26,7 @@
         android:layout_height="match_parent"
         app:scaleType="fitStart"/>
 
-    <com.google.mediapipe.examples.facedetection.OverlayView
+    <com.ahandyapp.ahafacex.OverlayView
         android:id="@+id/overlay"
         android:layout_height="match_parent"
         android:layout_width="match_parent" />
