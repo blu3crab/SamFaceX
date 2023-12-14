@@ -24,12 +24,12 @@
         android:id="@+id/view_finder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:scaleType="fitStart"/>
+        app:scaleType="fillStart" />
 
     <com.ahandyapp.ahafacex.OverlayView
         android:id="@+id/overlay"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent" />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <include
         android:id="@+id/bottom_sheet_layout"

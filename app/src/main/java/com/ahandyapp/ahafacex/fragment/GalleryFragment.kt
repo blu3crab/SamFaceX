@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.ahandyapp.ahafacex.fragments
+package com.ahandyapp.ahafacex.fragment
 
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -31,15 +31,16 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import com.ahandyapp.ahafacex.FaceLandmarkerHelper
 import com.ahandyapp.ahafacex.MainViewModel
-import com.ahandyapp.ahafacex.FaceDetectorHelper
 import com.ahandyapp.ahafacex.databinding.FragmentGalleryBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
+import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
-class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
+class GalleryFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
     enum class MediaType {
         IMAGE,
@@ -50,11 +51,11 @@ class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
     private var _fragmentGalleryBinding: FragmentGalleryBinding? = null
     private val fragmentGalleryBinding
         get() = _fragmentGalleryBinding!!
-    private lateinit var faceDetectorHelper: FaceDetectorHelper
+    private lateinit var faceLandmarkerHelper: FaceLandmarkerHelper
+    private val viewModel: MainViewModel by activityViewModels()
 
     /** Blocking ML operations are performed using this executor */
     private lateinit var backgroundExecutor: ScheduledExecutorService
-    private val viewModel: MainViewModel by activityViewModels()
 
     private val getContent =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
@@ -105,19 +106,90 @@ class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
     }
 
     private fun initBottomSheetControls() {
-        updateControlsUi()
+        // init bottom sheet settings
+        fragmentGalleryBinding.bottomSheetLayout.maxFacesValue.text =
+            viewModel.currentMaxFaces.toString()
+        fragmentGalleryBinding.bottomSheetLayout.detectionThresholdValue.text =
+            String.format(
+                Locale.US, "%.2f", viewModel.currentMinFaceDetectionConfidence
+            )
+        fragmentGalleryBinding.bottomSheetLayout.trackingThresholdValue.text =
+            String.format(
+                Locale.US, "%.2f", viewModel.currentMinFaceTrackingConfidence
+            )
+        fragmentGalleryBinding.bottomSheetLayout.presenceThresholdValue.text =
+            String.format(
+                Locale.US, "%.2f", viewModel.currentMinFacePresenceConfidence
+            )
+
         // When clicked, lower detection score threshold floor
-        fragmentGalleryBinding.bottomSheetLayout.thresholdMinus.setOnClickListener {
-            if (viewModel.currentThreshold >= 0.1) {
-                viewModel.setThreshold(viewModel.currentThreshold - 0.1f)
+        fragmentGalleryBinding.bottomSheetLayout.detectionThresholdMinus.setOnClickListener {
+            if (viewModel.currentMinFaceDetectionConfidence >= 0.2) {
+                viewModel.setMinFaceDetectionConfidence(viewModel.currentMinFaceDetectionConfidence - 0.1f)
                 updateControlsUi()
             }
         }
 
         // When clicked, raise detection score threshold floor
-        fragmentGalleryBinding.bottomSheetLayout.thresholdPlus.setOnClickListener {
-            if (viewModel.currentThreshold <= 0.8) {
-                viewModel.setThreshold(viewModel.currentThreshold + 0.1f)
+        fragmentGalleryBinding.bottomSheetLayout.detectionThresholdPlus.setOnClickListener {
+            if (viewModel.currentMinFaceDetectionConfidence <= 0.8) {
+                viewModel.setMinFaceDetectionConfidence(viewModel.currentMinFaceDetectionConfidence + 0.1f)
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, lower face tracking score threshold floor
+        fragmentGalleryBinding.bottomSheetLayout.trackingThresholdMinus.setOnClickListener {
+            if (viewModel.currentMinFaceTrackingConfidence >= 0.2) {
+                viewModel.setMinFaceTrackingConfidence(
+                    viewModel.currentMinFaceTrackingConfidence - 0.1f
+                )
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, raise face tracking score threshold floor
+        fragmentGalleryBinding.bottomSheetLayout.trackingThresholdPlus.setOnClickListener {
+            if (viewModel.currentMinFaceTrackingConfidence <= 0.8) {
+                viewModel.setMinFaceTrackingConfidence(
+                    viewModel.currentMinFaceTrackingConfidence + 0.1f
+                )
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, lower face presence score threshold floor
+        fragmentGalleryBinding.bottomSheetLayout.presenceThresholdMinus.setOnClickListener {
+            if (viewModel.currentMinFacePresenceConfidence >= 0.2) {
+                viewModel.setMinFacePresenceConfidence(
+                    viewModel.currentMinFacePresenceConfidence - 0.1f
+                )
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, raise face presence score threshold floor
+        fragmentGalleryBinding.bottomSheetLayout.presenceThresholdPlus.setOnClickListener {
+            if (viewModel.currentMinFacePresenceConfidence <= 0.8) {
+                viewModel.setMinFacePresenceConfidence(
+                    viewModel.currentMinFacePresenceConfidence + 0.1f
+                )
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, reduce the number of objects that can be detected at a time
+        fragmentGalleryBinding.bottomSheetLayout.maxFacesMinus.setOnClickListener {
+            if (viewModel.currentMaxFaces > 1) {
+                viewModel.setMaxFaces(viewModel.currentMaxFaces - 1)
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, increase the number of objects that can be detected at a time
+        fragmentGalleryBinding.bottomSheetLayout.maxFacesPlus.setOnClickListener {
+            if (viewModel.currentMaxFaces < 2) {
+                viewModel.setMaxFaces(viewModel.currentMaxFaces + 1)
                 updateControlsUi()
             }
         }
@@ -145,7 +217,6 @@ class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
                     /* no op */
                 }
             }
-
     }
 
     // Update the values displayed in the bottom sheet. Reset detector.
@@ -156,8 +227,20 @@ class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
         fragmentGalleryBinding.videoView.visibility = View.GONE
         fragmentGalleryBinding.imageResult.visibility = View.GONE
         fragmentGalleryBinding.overlay.clear()
-        fragmentGalleryBinding.bottomSheetLayout.thresholdValue.text =
-            String.format("%.2f", viewModel.currentThreshold)
+        fragmentGalleryBinding.bottomSheetLayout.maxFacesValue.text =
+            viewModel.currentMaxFaces.toString()
+        fragmentGalleryBinding.bottomSheetLayout.detectionThresholdValue.text =
+            String.format(
+                Locale.US, "%.2f", viewModel.currentMinFaceDetectionConfidence
+            )
+        fragmentGalleryBinding.bottomSheetLayout.trackingThresholdValue.text =
+            String.format(
+                Locale.US, "%.2f", viewModel.currentMinFaceTrackingConfidence
+            )
+        fragmentGalleryBinding.bottomSheetLayout.presenceThresholdValue.text =
+            String.format(
+                Locale.US, "%.2f", viewModel.currentMinFacePresenceConfidence
+            )
 
         fragmentGalleryBinding.overlay.clear()
         fragmentGalleryBinding.tvPlaceholder.visibility = View.VISIBLE
@@ -184,39 +267,36 @@ class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
             ?.let { bitmap ->
                 fragmentGalleryBinding.imageResult.setImageBitmap(bitmap)
 
-                // Run face detection on the input image
+                // Run face landmarker on the input image
                 backgroundExecutor.execute {
 
-                    faceDetectorHelper =
-                        FaceDetectorHelper(
+                    faceLandmarkerHelper =
+                        FaceLandmarkerHelper(
                             context = requireContext(),
-                            threshold = viewModel.currentThreshold,
-                            currentDelegate = viewModel.currentDelegate,
                             runningMode = RunningMode.IMAGE,
-                            faceDetectorListener = this
+                            minFaceDetectionConfidence = viewModel.currentMinFaceDetectionConfidence,
+                            minFaceTrackingConfidence = viewModel.currentMinFaceTrackingConfidence,
+                            minFacePresenceConfidence = viewModel.currentMinFacePresenceConfidence,
+                            maxNumFaces = viewModel.currentMaxFaces,
+                            currentDelegate = viewModel.currentDelegate
                         )
 
-                    faceDetectorHelper.detectImage(bitmap)
-                        ?.let { resultBundle ->
-                            activity?.runOnUiThread {
-                                fragmentGalleryBinding.overlay.setResults(
-                                    resultBundle.results[0],
-                                    bitmap.height,
-                                    bitmap.width
-                                )
+                    faceLandmarkerHelper.detectImage(bitmap)?.let { result ->
+                        activity?.runOnUiThread {
+                            fragmentGalleryBinding.overlay.setResults(
+                                result.result,
+                                bitmap.height,
+                                bitmap.width,
+                                RunningMode.IMAGE
+                            )
 
-                                setUiEnabled(true)
-                                fragmentGalleryBinding.bottomSheetLayout.inferenceTimeVal.text =
-                                    String.format(
-                                        "%d ms",
-                                        resultBundle.inferenceTime
-                                    )
-                            }
-                        } ?: run {
-                        Log.e(TAG, "Error running face detection.")
-                    }
+                            setUiEnabled(true)
+                            fragmentGalleryBinding.bottomSheetLayout.inferenceTimeVal.text =
+                                String.format("%d ms", result.inferenceTime)
+                        }
+                    } ?: run { Log.e(TAG, "Error running face landmarker.") }
 
-                    faceDetectorHelper.clearFaceDetector()
+                    faceLandmarkerHelper.clearFaceLandmarker()
                 }
             }
     }
@@ -235,13 +315,15 @@ class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
         backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
         backgroundExecutor.execute {
 
-            faceDetectorHelper =
-                FaceDetectorHelper(
+            faceLandmarkerHelper =
+                FaceLandmarkerHelper(
                     context = requireContext(),
-                    threshold = viewModel.currentThreshold,
-                    currentDelegate = viewModel.currentDelegate,
                     runningMode = RunningMode.VIDEO,
-                    faceDetectorListener = this
+                    minFaceDetectionConfidence = viewModel.currentMinFaceDetectionConfidence,
+                    minFaceTrackingConfidence = viewModel.currentMinFaceTrackingConfidence,
+                    minFacePresenceConfidence = viewModel.currentMinFacePresenceConfidence,
+                    maxNumFaces = viewModel.currentMaxFaces,
+                    currentDelegate = viewModel.currentDelegate
                 )
 
             activity?.runOnUiThread {
@@ -249,23 +331,18 @@ class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
                 fragmentGalleryBinding.progress.visibility = View.VISIBLE
             }
 
-            faceDetectorHelper.detectVideoFile(uri, VIDEO_INTERVAL_MS)
+            faceLandmarkerHelper.detectVideoFile(uri, VIDEO_INTERVAL_MS)
                 ?.let { resultBundle ->
                     activity?.runOnUiThread { displayVideoResult(resultBundle) }
                 }
-                ?: run {
-                    activity?.runOnUiThread {
-                        fragmentGalleryBinding.progress.visibility = View.GONE
-                    }
-                    Log.e(TAG, "Error running face detection.")
-                }
+                ?: run { Log.e(TAG, "Error running face landmarker.") }
 
-            faceDetectorHelper.clearFaceDetector()
+            faceLandmarkerHelper.clearFaceLandmarker()
         }
     }
 
     // Setup and display the video.
-    private fun displayVideoResult(result: FaceDetectorHelper.ResultBundle) {
+    private fun displayVideoResult(result: FaceLandmarkerHelper.VideoResultBundle) {
 
         fragmentGalleryBinding.videoView.visibility = View.VISIBLE
         fragmentGalleryBinding.progress.visibility = View.GONE
@@ -288,7 +365,8 @@ class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
                         fragmentGalleryBinding.overlay.setResults(
                             result.results[resultIndex],
                             result.inputImageHeight,
-                            result.inputImageWidth
+                            result.inputImageWidth,
+                            RunningMode.VIDEO
                         )
 
                         setUiEnabled(true)
@@ -305,7 +383,6 @@ class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
     }
 
     private fun updateDisplayView(mediaType: MediaType) {
-        fragmentGalleryBinding.overlay.clear()
         fragmentGalleryBinding.imageResult.visibility =
             if (mediaType == MediaType.IMAGE) View.VISIBLE else View.GONE
         fragmentGalleryBinding.videoView.visibility =
@@ -327,15 +404,27 @@ class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
 
     private fun setUiEnabled(enabled: Boolean) {
         fragmentGalleryBinding.fabGetContent.isEnabled = enabled
-        fragmentGalleryBinding.bottomSheetLayout.thresholdMinus.isEnabled =
+        fragmentGalleryBinding.bottomSheetLayout.detectionThresholdMinus.isEnabled =
             enabled
-        fragmentGalleryBinding.bottomSheetLayout.thresholdPlus.isEnabled =
+        fragmentGalleryBinding.bottomSheetLayout.detectionThresholdPlus.isEnabled =
+            enabled
+        fragmentGalleryBinding.bottomSheetLayout.trackingThresholdMinus.isEnabled =
+            enabled
+        fragmentGalleryBinding.bottomSheetLayout.trackingThresholdPlus.isEnabled =
+            enabled
+        fragmentGalleryBinding.bottomSheetLayout.presenceThresholdMinus.isEnabled =
+            enabled
+        fragmentGalleryBinding.bottomSheetLayout.presenceThresholdPlus.isEnabled =
+            enabled
+        fragmentGalleryBinding.bottomSheetLayout.maxFacesPlus.isEnabled =
+            enabled
+        fragmentGalleryBinding.bottomSheetLayout.maxFacesMinus.isEnabled =
             enabled
         fragmentGalleryBinding.bottomSheetLayout.spinnerDelegate.isEnabled =
             enabled
     }
 
-    private fun detectError() {
+    private fun classifyingError() {
         activity?.runOnUiThread {
             fragmentGalleryBinding.progress.visibility = View.GONE
             setUiEnabled(true)
@@ -344,18 +433,19 @@ class GalleryFragment : Fragment(), FaceDetectorHelper.DetectorListener {
     }
 
     override fun onError(error: String, errorCode: Int) {
-        detectError()
+        classifyingError()
         activity?.runOnUiThread {
             Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
-            if (errorCode == FaceDetectorHelper.GPU_ERROR) {
+            if (errorCode == FaceLandmarkerHelper.GPU_ERROR) {
                 fragmentGalleryBinding.bottomSheetLayout.spinnerDelegate.setSelection(
-                    FaceDetectorHelper.DELEGATE_CPU, false
+                    FaceLandmarkerHelper.DELEGATE_CPU,
+                    false
                 )
             }
         }
     }
 
-    override fun onResults(resultBundle: FaceDetectorHelper.ResultBundle) {
+    override fun onResults(resultBundle: FaceLandmarkerHelper.ResultBundle) {
         // no-op
     }
 

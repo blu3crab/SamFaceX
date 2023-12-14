@@ -21,7 +21,7 @@
 
     <fragment
         android:id="@+id/permissions_fragment"
-        android:name="com.ahandyapp.ahafacex.fragments.PermissionsFragment"
+        android:name="com.ahandyapp.ahafacex.fragment.PermissionsFragment"
         android:label="PermissionsFragment">
 
         <action
@@ -34,7 +34,7 @@
 
     <fragment
         android:id="@+id/camera_fragment"
-        android:name="com.ahandyapp.ahafacex.fragments.CameraFragment"
+        android:name="com.ahandyapp.ahafacex.fragment.CameraFragment"
         android:label="CameraFragment">
 
         <action
@@ -42,11 +42,10 @@
             app:destination="@id/permissions_fragment"
             app:popUpTo="@id/camera_fragment"
             app:popUpToInclusive="true" />
-
     </fragment>
 
     <fragment
         android:id="@+id/gallery_fragment"
-        android:name="com.ahandyapp.ahafacex.fragments.GalleryFragment"
+        android:name="com.ahandyapp.ahafacex.fragment.GalleryFragment"
         android:label="GalleryFragment" />
 </navigation>

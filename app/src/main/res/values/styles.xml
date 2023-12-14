@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <!--
+<!--
     ~ Copyright 2023 The TensorFlow Authors. All Rights Reserved.
     ~
     ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +13,22 @@
     ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     ~ See the License for the specific language governing permissions and
     ~ limitations under the License.
-    -->
+-->
+<resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar" >
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/mp_color_primary</item>
+        <item name="colorPrimaryVariant">@color/mp_color_primary_variant</item>
+        <item name="colorPrimaryDark">@color/mp_color_primary_dark</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/mp_color_secondary</item>
+        <item name="colorSecondaryVariant">@color/mp_color_secondary_variant</item>
+        <item name="colorError">@color/mp_color_error</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
+        <!-- Customize your theme here. -->
     </style>
 
     <style name="BottomSheetSpinnerItemStyle" parent="Widget.AppCompat.Light.DropDownItem.Spinner">
@@ -27,6 +36,6 @@
     </style>
 
     <style name="AppThemeProgressStyle">
-        <item name="colorAccent">@color/mp_variant</item>
+        <item name="colorAccent">@color/mp_color_primary_variant</item>
     </style>
 </resources>
