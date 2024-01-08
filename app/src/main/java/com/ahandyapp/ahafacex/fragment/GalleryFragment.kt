@@ -283,7 +283,7 @@ class GalleryFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
                     faceLandmarkerHelper.detectImage(bitmap)?.let { result ->
                         activity?.runOnUiThread {
-                            fragmentGalleryBinding.overlay.setResults(
+                            fragmentGalleryBinding.overlay.setResult(
                                 result.result,
                                 bitmap.height,
                                 bitmap.width,
@@ -362,7 +362,7 @@ class GalleryFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                         // The video playback has finished so we stop drawing bounding boxes
                         backgroundExecutor.shutdown()
                     } else {
-                        fragmentGalleryBinding.overlay.setResults(
+                        fragmentGalleryBinding.overlay.setResult(
                             result.results[resultIndex],
                             result.inputImageHeight,
                             result.inputImageWidth,

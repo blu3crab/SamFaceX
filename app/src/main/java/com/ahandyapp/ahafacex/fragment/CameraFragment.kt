@@ -51,6 +51,8 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         private const val TAG = "Face Landmarker"
     }
 
+//    private var result: FaceLandmarkerResult? = null
+
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
 
     private val fragmentCameraBinding
@@ -379,8 +381,16 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 fragmentCameraBinding.bottomSheetLayout.inferenceTimeVal.text =
                     String.format("%d ms", resultBundle.inferenceTime)
 
+//                result = resultBundle.result
+//                // TODO-> log results (for subset?)
+//                // eyes-> 37, 40, 43, 46
+//                Log.d(TAG, result.toString())
+//                val landmarkList = result!!.faceLandmarks().get(0)
+//                Log.d(TAG,"landmark->${landmarkList[0].x()}, ${landmarkList[0].y()}, ${landmarkList[0].z()}")
+
                 // Pass necessary information to OverlayView for drawing on the canvas
-                fragmentCameraBinding.overlay.setResults(
+//                fragmentCameraBinding.overlay.setResults(
+                fragmentCameraBinding.overlay.setResult(
                     resultBundle.result,
                     resultBundle.inputImageHeight,
                     resultBundle.inputImageWidth,
