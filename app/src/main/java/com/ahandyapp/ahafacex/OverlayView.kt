@@ -34,12 +34,14 @@ import kotlin.math.min
 class OverlayView(context: Context?, attrs: AttributeSet?) :
     View(context, attrs) {
 
+    // scanNod
     private var mark: Boolean = true
     private var markTimeMs = 0L
     private var markIntervalCount = 0
     private var markLandmarkList: List<NormalizedLandmark>? = null
-    var sumDeltaX = 0f
-    var sumDeltaY = 0f
+    private var sumDeltaX = 0f
+    private var sumDeltaY = 0f
+    private var nodState = NOD_STATE_NADA
 
     private var result: FaceLandmarkerResult? = null
     private var linePaint = Paint()
@@ -48,8 +50,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var scaleFactor: Float = 1f
     private var imageWidth: Int = 1
     private var imageHeight: Int = 1
-
-
 
     init {
         initPaints()
@@ -115,120 +115,9 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         runningMode: RunningMode = RunningMode.IMAGE
     ) {
         result = faceLandmarkerResult
+        // scan incoming result for nod state
+        result?.let{scanNod(result!!)}
 
-        // TODO-> log result (for subset)
-        // eyes-> 37, 40, 43, 46
-        //Log.d(TAG, result.toString())
-        val landmarkList = result!!.faceLandmarks()[0]  // first (zero-ith) face
-        val landmarkListSize = landmarkList.size
-        val timeMs = result!!.timestampMs()
-
-
-        if (landmarkListSize > LANDMARK_RIGHT_OUTER) {
-            if (mark) {
-                Log.d(
-                    TAG, "${markIntervalCount} landmarks at $timeMs:" +
-                            "\n...left outer ->${landmarkList[LANDMARK_LEFT_OUTER].x()}, ${landmarkList[LANDMARK_LEFT_OUTER].y()}, ${landmarkList[LANDMARK_LEFT_OUTER].z()}" +
-                            "\n...left inner ->${landmarkList[LANDMARK_LEFT_INNER].x()}, ${landmarkList[LANDMARK_LEFT_INNER].y()}, ${landmarkList[LANDMARK_LEFT_INNER].z()}" +
-                            "\n...right inner->${landmarkList[LANDMARK_RIGHT_INNER].x()}, ${landmarkList[LANDMARK_RIGHT_INNER].y()}, ${landmarkList[LANDMARK_RIGHT_INNER].z()}" +
-                            "\n...right outer->${landmarkList[LANDMARK_RIGHT_OUTER].x()}, ${landmarkList[LANDMARK_RIGHT_OUTER].y()}, ${landmarkList[LANDMARK_RIGHT_OUTER].z()}"
-                )
-                // if landmarks are available from previous interval
-                markLandmarkList?.let {
-//                    // delta landmarks
-//                    val deltaLeftOuterX =
-//                        landmarkList[LANDMARK_LEFT_OUTER].x() - markLandmarkList!![LANDMARK_LEFT_OUTER].x()
-//                    val deltaLeftInnerX =
-//                        landmarkList[LANDMARK_LEFT_INNER].x() - markLandmarkList!![LANDMARK_LEFT_INNER].x()
-//                    val deltaRightInnerX =
-//                        landmarkList[LANDMARK_RIGHT_INNER].x() - markLandmarkList!![LANDMARK_RIGHT_INNER].x()
-//                    val deltaRightOuterX =
-//                        landmarkList[LANDMARK_RIGHT_OUTER].x() - markLandmarkList!![LANDMARK_RIGHT_OUTER].x()
-//                    val deltaLeftOuterY =
-//                        landmarkList[LANDMARK_LEFT_OUTER].y() - markLandmarkList!![LANDMARK_LEFT_OUTER].y()
-//                    val deltaLeftInnerY =
-//                        landmarkList[LANDMARK_LEFT_INNER].y() - markLandmarkList!![LANDMARK_LEFT_INNER].y()
-//                    val deltaRightInnerY =
-//                        landmarkList[LANDMARK_RIGHT_INNER].y() - markLandmarkList!![LANDMARK_RIGHT_INNER].y()
-//                    val deltaRightOuterY =
-//                        landmarkList[LANDMARK_RIGHT_OUTER].y() - markLandmarkList!![LANDMARK_RIGHT_OUTER].y()
-//                    Log.d(
-//                        TAG, "${markIntervalCount} landmarks at $timeMs:" +
-//                                "\n...left outer delta X, Y->$deltaLeftOuterX, $deltaLeftOuterY" +
-//                                "\n...left inner delta X, Y ->$deltaLeftInnerX, $deltaLeftInnerY" +
-//                                "\n...right inner delta X, Y->$deltaRightInnerX, $deltaRightInnerY" +
-//                                "\n...right outer delta X, Y->$deltaRightOuterX, $deltaRightOuterY"
-//                    )
-//                    // sum delta X, Y -> X > Y !Yes, Y > X !No
-//                    sumDeltaX = abs(deltaLeftOuterX + deltaLeftInnerX + deltaRightInnerX + deltaRightOuterX)
-//                    sumDeltaY = abs(deltaLeftOuterY + deltaLeftInnerY + deltaRightInnerY + deltaRightOuterY)
-                    if (sumDeltaX > sumDeltaY) {
-                        Log.d(
-                            TAG, "Nod NO!" +
-                                    "\n...sum delta X, Y ->$sumDeltaX, $sumDeltaY"
-                        )
-                    }
-                    else if (sumDeltaY > sumDeltaX) {
-                        Log.d(
-                            TAG, "Nod YES!" +
-                                    "\n...sum delta X, Y ->$sumDeltaX, $sumDeltaY"
-                        )
-                    } else {
-                        Log.d(
-                            TAG, "Nod RANDOM!" +
-                                    "\n...sum delta X, Y ->$sumDeltaX, $sumDeltaY"
-                        )
-                    }
-
-                }
-                // reset for next interval
-                mark = false
-                markTimeMs = timeMs
-                markLandmarkList = landmarkList
-                markIntervalCount = 0
-                sumDeltaX = 0f
-                sumDeltaY = 0f
-            } else {
-                markIntervalCount++
-
-                if (timeMs - markTimeMs > 1000) {
-                    // mark interval reached
-                    mark = true
-                    // if landmarks are available from previous interval
-                    markLandmarkList?.let {
-                        // delta landmarks
-                        val deltaLeftOuterX =
-                            landmarkList[LANDMARK_LEFT_OUTER].x() - markLandmarkList!![LANDMARK_LEFT_OUTER].x()
-                        val deltaLeftInnerX =
-                            landmarkList[LANDMARK_LEFT_INNER].x() - markLandmarkList!![LANDMARK_LEFT_INNER].x()
-                        val deltaRightInnerX =
-                            landmarkList[LANDMARK_RIGHT_INNER].x() - markLandmarkList!![LANDMARK_RIGHT_INNER].x()
-                        val deltaRightOuterX =
-                            landmarkList[LANDMARK_RIGHT_OUTER].x() - markLandmarkList!![LANDMARK_RIGHT_OUTER].x()
-                        val deltaLeftOuterY =
-                            landmarkList[LANDMARK_LEFT_OUTER].y() - markLandmarkList!![LANDMARK_LEFT_OUTER].y()
-                        val deltaLeftInnerY =
-                            landmarkList[LANDMARK_LEFT_INNER].y() - markLandmarkList!![LANDMARK_LEFT_INNER].y()
-                        val deltaRightInnerY =
-                            landmarkList[LANDMARK_RIGHT_INNER].y() - markLandmarkList!![LANDMARK_RIGHT_INNER].y()
-                        val deltaRightOuterY =
-                            landmarkList[LANDMARK_RIGHT_OUTER].y() - markLandmarkList!![LANDMARK_RIGHT_OUTER].y()
-                        Log.d(
-                            TAG, "${markIntervalCount} landmarks at $timeMs:" +
-                                    "\n...left outer delta X, Y->$deltaLeftOuterX, $deltaLeftOuterY" +
-                                    "\n...left inner delta X, Y ->$deltaLeftInnerX, $deltaLeftInnerY" +
-                                    "\n...right inner delta X, Y->$deltaRightInnerX, $deltaRightInnerY" +
-                                    "\n...right outer delta X, Y->$deltaRightOuterX, $deltaRightOuterY"
-                        )
-                        // sum delta X, Y -> X > Y !Yes, Y > X !No
-                        sumDeltaX =
-                            abs(deltaLeftOuterX + deltaLeftInnerX + deltaRightInnerX + deltaRightOuterX)
-                        sumDeltaY =
-                            abs(deltaLeftOuterY + deltaLeftInnerY + deltaRightInnerY + deltaRightOuterY)
-                    }
-                }
-            }
-        }
         this.imageHeight = imageHeight
         this.imageWidth = imageWidth
 
@@ -247,15 +136,119 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         invalidate()
     }
 
+    fun scanNod(result: FaceLandmarkerResult) {
+        // update nod state based on 4 eye landmarks moving vertically (yes) or horizontally (no)
+        // eyes-> 37, 40, 43, 46
+        // TODO-> add historisis to state changes
+        //Log.d(TAG, result.toString())
+        val landmarkList = result!!.faceLandmarks()[0]  // first (zero-ith) face
+        val landmarkListSize = landmarkList.size
+        val timeMs = result!!.timestampMs()
+
+        if (landmarkListSize > LANDMARK_MAX) {
+            if (mark) {
+                // mark the nod state: YES, NO, NADA
+                markNodState(landmarkList, timeMs)
+                // reset for next interval
+                mark = false
+                markTimeMs = timeMs
+                markLandmarkList = landmarkList
+                markIntervalCount = 0
+                sumDeltaX = 0f
+                sumDeltaY = 0f
+            } else {
+                markIntervalCount++
+
+                if (timeMs - markTimeMs > 1000) {
+                    // mark interval reached
+                    mark = true
+                    // update nod state based on 4 eye landmarks moving vertically (yes) or horizontally (no)
+                    updateNodState(landmarkList, timeMs)
+                }
+            }
+        }
+    }
+
+    fun getNodState(): String {
+        return nodState
+    }
+    private fun markNodState(landmarkList: List<NormalizedLandmark>, timeMs: Long) {
+        Log.d(
+            TAG, "${markIntervalCount} landmarks at $timeMs:" +
+                    "\n...left outer ->${landmarkList[LANDMARK_LEFT_OUTER].x()}, ${landmarkList[LANDMARK_LEFT_OUTER].y()}, ${landmarkList[LANDMARK_LEFT_OUTER].z()}" +
+                    "\n...left inner ->${landmarkList[LANDMARK_LEFT_INNER].x()}, ${landmarkList[LANDMARK_LEFT_INNER].y()}, ${landmarkList[LANDMARK_LEFT_INNER].z()}" +
+                    "\n...right inner->${landmarkList[LANDMARK_RIGHT_INNER].x()}, ${landmarkList[LANDMARK_RIGHT_INNER].y()}, ${landmarkList[LANDMARK_RIGHT_INNER].z()}" +
+                    "\n...right outer->${landmarkList[LANDMARK_RIGHT_OUTER].x()}, ${landmarkList[LANDMARK_RIGHT_OUTER].y()}, ${landmarkList[LANDMARK_RIGHT_OUTER].z()}"
+        )
+        // if landmarks are available from previous interval
+        markLandmarkList?.let {
+            //when (sumDeltaX > sumDeltaY) {
+            //    true -> nodState = NOD_STATE_NO
+            //    false -> nodState = NOD_STATE_YES
+            //}
+            if (sumDeltaX > sumDeltaY) {
+                nodState = NOD_STATE_NO
+            }
+            else if (sumDeltaY > sumDeltaX) {
+                nodState = NOD_STATE_YES
+            } else {
+                nodState = NOD_STATE_NADA
+            }
+            Log.d(TAG, "Nod $nodState!" +
+                    "\n...sum delta X, Y ->$sumDeltaX, $sumDeltaY")
+        }
+    }
+    private fun updateNodState(landmarkList: List<NormalizedLandmark>, timeMs: Long) {
+        // if landmarks are available from previous interval
+        markLandmarkList?.let {
+            // delta landmarks
+            val deltaLeftOuterX =
+                landmarkList[LANDMARK_LEFT_OUTER].x() - markLandmarkList!![LANDMARK_LEFT_OUTER].x()
+            val deltaLeftInnerX =
+                landmarkList[LANDMARK_LEFT_INNER].x() - markLandmarkList!![LANDMARK_LEFT_INNER].x()
+            val deltaRightInnerX =
+                landmarkList[LANDMARK_RIGHT_INNER].x() - markLandmarkList!![LANDMARK_RIGHT_INNER].x()
+            val deltaRightOuterX =
+                landmarkList[LANDMARK_RIGHT_OUTER].x() - markLandmarkList!![LANDMARK_RIGHT_OUTER].x()
+            val deltaLeftOuterY =
+                landmarkList[LANDMARK_LEFT_OUTER].y() - markLandmarkList!![LANDMARK_LEFT_OUTER].y()
+            val deltaLeftInnerY =
+                landmarkList[LANDMARK_LEFT_INNER].y() - markLandmarkList!![LANDMARK_LEFT_INNER].y()
+            val deltaRightInnerY =
+                landmarkList[LANDMARK_RIGHT_INNER].y() - markLandmarkList!![LANDMARK_RIGHT_INNER].y()
+            val deltaRightOuterY =
+                landmarkList[LANDMARK_RIGHT_OUTER].y() - markLandmarkList!![LANDMARK_RIGHT_OUTER].y()
+            // sum delta X, Y -> X > Y !Yes, Y > X !No
+            sumDeltaX =
+                abs(deltaLeftOuterX + deltaLeftInnerX + deltaRightInnerX + deltaRightOuterX)
+            sumDeltaY =
+                abs(deltaLeftOuterY + deltaLeftInnerY + deltaRightInnerY + deltaRightOuterY)
+            Log.d(
+                TAG, "${markIntervalCount} landmarks at $timeMs:" +
+                        "\n...left outer delta X, Y->$deltaLeftOuterX, $deltaLeftOuterY" +
+                        "\n...left inner delta X, Y ->$deltaLeftInnerX, $deltaLeftInnerY" +
+                        "\n...right inner delta X, Y->$deltaRightInnerX, $deltaRightInnerY" +
+                        "\n...right outer delta X, Y->$deltaRightOuterX, $deltaRightOuterY" +
+                        "\n...sum delta X, Y ->$sumDeltaX, $sumDeltaY"
+            )
+        }
+
+    }
+
     companion object {
         private const val LANDMARK_STROKE_WIDTH = 8F
         //private const val TAG = "Face Landmarker Overlay"
-        private const val TAG = "AhaFaceX"
+        private const val TAG = "AhaFaceX OverlayView"
 
         const val LANDMARK_LEFT_OUTER = 37
         const val LANDMARK_LEFT_INNER = 40
         const val LANDMARK_RIGHT_INNER = 43
         const val LANDMARK_RIGHT_OUTER = 46
+        const val LANDMARK_MAX = LANDMARK_RIGHT_OUTER
+
+        const val NOD_STATE_YES = "YES"
+        const val NOD_STATE_NO = "NO"
+        const val NOD_STATE_NADA = "NADA"
 
     }
 }
