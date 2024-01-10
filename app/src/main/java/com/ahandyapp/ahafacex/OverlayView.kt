@@ -46,6 +46,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var result: FaceLandmarkerResult? = null
     private var linePaint = Paint()
     private var pointPaint = Paint()
+    private var textPaint = Paint()
 
     private var scaleFactor: Float = 1f
     private var imageWidth: Int = 1
@@ -59,6 +60,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         result = null
         linePaint.reset()
         pointPaint.reset()
+        textPaint.reset()
         invalidate()
         initPaints()
     }
@@ -72,6 +74,10 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         pointPaint.color = Color.YELLOW
         pointPaint.strokeWidth = LANDMARK_STROKE_WIDTH
         pointPaint.style = Paint.Style.FILL
+
+        textPaint.color = Color.RED
+        textPaint.textSize = 100f
+
     }
 
     override fun draw(canvas: Canvas) {
@@ -105,6 +111,10 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     faceLandmarkerResult.faceLandmarks().get(0).get(it.end()).y() * imageHeight * scaleFactor,
                     linePaint)
             }
+
+            // draw nod state text
+            canvas.drawText(nodState, imageWidth/2f, imageHeight/2f, textPaint)
+            //Log.d(TAG, "Nod $nodState! at X: ${imageWidth/2f}, Y: ${imageHeight/2f}")
         }
     }
 
@@ -186,11 +196,13 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             //    true -> nodState = NOD_STATE_NO
             //    false -> nodState = NOD_STATE_YES
             //}
-            if (sumDeltaX > sumDeltaY) {
-                nodState = NOD_STATE_NO
-            }
-            else if (sumDeltaY > sumDeltaX) {
-                nodState = NOD_STATE_YES
+            if (sumDeltaX > .01 || sumDeltaY > .01 ) {
+                if (sumDeltaX > sumDeltaY) {
+                    nodState = NOD_STATE_NO
+                }
+                else if (sumDeltaY > sumDeltaX) {
+                    nodState = NOD_STATE_YES
+                }
             } else {
                 nodState = NOD_STATE_NADA
             }
