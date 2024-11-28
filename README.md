@@ -1,4 +1,6 @@
-# MediaPipe Tasks Face Landmark Detection Android Demo
+# (modified) MediaPipe Tasks Face Landmark Detection Android Demo
+### detect & draw nod state-> YES (eyes move vertically), NO (eyes move horizontally), NADA (no sigificant movement)
+A simple examination of the eye landmarks (37, 40, 43, 46) at 1 second intervals to determine delta X, Y.  Higher delta wins prediction.
 
 ### Overview
 
